@@ -6,19 +6,12 @@ import json
 import sys
 
 class Gateway:
-    id = 1
-    
-    def generate_id():
-        newId = Gateway.id
-        Gateway.id += 1
-        return newId
-    
-    def __init__(self, interval):
+    def __init__(self, interval, id):
         """
             Args:
                 interval : Time between readouts of the sensor values.
         """
-        self.id = Gateway.generate_id()
+        self.id = id
         self.sensors = []
         self.readings = queue.Queue()
         self.nReadings = 0

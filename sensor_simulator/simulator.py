@@ -5,6 +5,7 @@ Usage example: python ./simulator.py --sensors 2 --interval 5
 Options:
     --sensors : Number of sensors in each gateway.
     --interval : Clock speed
+    --gateway-id : Unique ID assigned to the gateway (has to exist on the server).
 """
 
 import time
@@ -29,17 +30,19 @@ options = {
     #Default Options
     "nSensors" : 100,
     "interval" : 10, # in s. Equal to 1h in real time.
+    "gateway-id" : 1,
     "readFromFile" : False,
     "saveToFile" : False,
     "file" : ""
 }
 
 try:
-    opts, args = getopt.getopt(sys.argv[1:], "s:i:c:",
-                               ["sensors=", "installations=",
-                                "companies=", "interval=",
-                                "gateways=", "clear-db",
+    opts, args = getopt.getopt(sys.argv[1:], "s",
+                               ["sensors=",
+                                "interval=",
+                                "clear-db",
                                 "load=", "save=",
+                                "gateway-id=",
                                 "time="])
     for opt, arg in opts:
         if opt in ('-s', '--sensors'):
@@ -56,6 +59,8 @@ try:
             # options['time'] = arg
             dt = datetime.strptime(arg, '%Y-%m-%d-%H:%M:%S')
             globals.virtualDate.value = int(dt.strftime("%s"))
+        elif opt in ('--gateway-id'):
+            options['gateway-id'] = int(arg)
 except getopt.GetoptError:
     print("GETOPT error")
 
@@ -63,6 +68,7 @@ except getopt.GetoptError:
 print("Current Timestamp {}".format(globals.virtualDate.get_timestamp()))
 scheduler.add_job(globals.virtualDate.tick, 'interval', seconds=options['interval'])
 
+print("GatewayID: {}".format(options['gateway-id']))
 print("# of Sensors:  {}".format(options['nSensors']))
 print("Sensor Interval: {}s".format(options['interval']))
 print("Gateway Interval: {}s".format(10))
@@ -71,7 +77,7 @@ print("Gateway Interval: {}s".format(10))
 # Start new run
 print("Bringing Sensors Online")
 
-gateway =  Gateway(options['interval'])
+gateway =  Gateway(options['interval'], options["gateway-   id"])
 for i in range(1, options['nSensors']+1):
     sensor = Sensor()
     gateway.add_sensor(sensor)
