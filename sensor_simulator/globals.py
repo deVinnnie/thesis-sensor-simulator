@@ -4,6 +4,6 @@ import time
 virtualDate = VirtualDate(int(time.time()))
 
 server = {
-    "host" : "localhost:8000",
+    "host" : "http://localhost:8000/rest",
     "api-key" : "XXXX-XXXX"
 }

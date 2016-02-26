@@ -62,7 +62,7 @@ class Gateway:
                 }
                 payload['measurements'].append(readingPayload)
 
-            url = "http://localhost:8000/rest/gateways/{}/sensors/{}/measurements/".format(self.id,reading.sensor.id)
+            url = globals.server["host"] + "/gateways/{}/sensors/{}/measurements/".format(self.id,reading.sensor.id)
             
             try:
                 r = requests.post(url, json=payload)
@@ -71,7 +71,7 @@ class Gateway:
             #self.fetch_configuration()
                 
     def fetch_configuration(self):
-        url = "http://localhost:8000/rest/gateways/{}/config".format(self.id)
+        url = globals.server["host"] + "/gateways/{}/config".format(self.id)
         r = requests.get(url)
         print(r)
     
