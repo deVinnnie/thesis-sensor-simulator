@@ -21,4 +21,4 @@ class VirtualDate:
         """
         Increments the virtual clock by one hour.
         """
-        self.value += (60*60)
+        self.value += (2*60*60)

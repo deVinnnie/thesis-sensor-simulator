@@ -4,8 +4,15 @@ Usage example: python ./simulator.py --sensors 2 --interval 5
 
 Options:
     --sensors : Number of sensors in each gateway.
-    --interval : Clock speed
+    --interval : Clock speed. One interval is equal to 2 hours of simulation time.
+                 We suppose that a measurement happens every 2 hours.
     --gateway-id : Unique ID assigned to the gateway (has to exist on the server).
+                   If the gateway doesn't exist yet the program exits.
+    
+    --installation-id : Unique ID of the parent installation for a new gateway. 
+                        A new gateway is created under the specified installation.
+                        Only specify either installation-id or gateway-id.
+                        For the new gateway a id is assigned by the server.
 """
 
 import time
@@ -14,78 +21,115 @@ from apscheduler.schedulers.background import BackgroundScheduler
 import sys
 import getopt
 import json
+import argparse
 from virtual_date import *
 from models import *
 import globals
 
 
 start_time = time.time()
+
 # Start Scheduler
 scheduler = BackgroundScheduler(timezone=utc)
 globals.scheduler = scheduler
 scheduler.start()
 
-# Retrieve command line arguments.
-options = {
-    #Default Options
-    "nSensors" : 100,
-    "interval" : 10, # in s. Equal to 1h in real time.
-    "gateway-id" : 1,
-    "readFromFile" : False,
-    "saveToFile" : False,
-    "file" : ""
-}
 
-try:
-    opts, args = getopt.getopt(sys.argv[1:], "s",
-                               ["sensors=",
-                                "interval=",
-                                "clear-db",
-                                "load=", "save=",
-                                "gateway-id=",
-                                "time="])
-    for opt, arg in opts:
-        if opt in ('-s', '--sensors'):
-            options['nSensors'] = int(arg)
-        elif opt in ('-i', '--interval'):
-            options['interval'] = float(arg)
-        elif opt in ('--load'):
-            options['readFromFile'] = True
-            options['file'] = arg
-        elif opt in ('--save'):
-            options['saveToFile'] = True
-            options['file'] = arg
-        elif opt in ('--time'):
-            # options['time'] = arg
-            dt = datetime.strptime(arg, '%Y-%m-%d-%H:%M:%S')
-            globals.virtualDate.value = int(dt.strftime("%s"))
-        elif opt in ('--gateway-id'):
-            options['gateway-id'] = int(arg)
-except getopt.GetoptError:
-    print("GETOPT error")
+# Transmit interval = every day = 24h.
+# 2 hours = 5s.
+# 12 h = 6*5s = 30s.
+
+parser = argparse.ArgumentParser(description='Process some integers.')
+parser.add_argument('--interval', nargs='?', help='Update interval', default=5)
+parser.add_argument('--gateway-interval', nargs='?', help='Update interval', default=60, dest='gatewayInterval')
+parser.add_argument('--sensors', nargs='?', help='Number of sensors attached to this gateway.', default=100, dest='nSensors')
+parser.add_argument('--gateway-id',nargs='?', help='Unique ID assigned to the gateway (has to exist on the server).', default=0, dest='gatewayId')
+parser.add_argument('--installation-id', nargs='?', help='ID of the installation for which a new gateway will be created.', default=0, dest='installationId')
+options = parser.parse_args()
+
+#             # options['time'] = arg
+#             dt = datetime.strptime(arg, '%Y-%m-%d-%H:%M:%S')
+#             globals.virtualDate.value = int(dt.strftime("%s"))
 
 # Initialize clock
 print("Current Timestamp {}".format(globals.virtualDate.get_timestamp()))
-scheduler.add_job(globals.virtualDate.tick, 'interval', seconds=options['interval'])
+scheduler.add_job(globals.virtualDate.tick, 'interval', seconds=options.interval)
 
-print("GatewayID: {}".format(options['gateway-id']))
-print("# of Sensors:  {}".format(options['nSensors']))
-print("Sensor Interval: {}s".format(options['interval']))
-print("Gateway Interval: {}s".format(10))
+gateway = None
 
+
+if options.gatewayId:
+    # Gateway already exist.
+    # Get the gateway's information via REST. 
+    # Initialize with correct number of sensors.
+    try:
+        url = globals.server["host"] + "/gateways/{}/".format(options.gatewayId)
+        r = requests.get(url)
+        
+        if(r.status_code == requests.codes.not_found):
+            # Gateway does not exist.
+            exit()
+        else:
+            gateway = Gateway(options.gatewayInterval, options.interval, options.gatewayId)
+
+            # Analyze payload, retrieve sensors.
+            response = r.json()
+            sensors = response['sensors']
+            
+            for s_id in sensors:
+                print("Bringing Sensors Online")
+                sensor = Sensor(s_id)
+                gateway.add_sensor(sensor)
+    except requests.exceptions.ConnectionError:
+        sys.stderr.write('Failed to make Connection')
+
+if options.installationId:
+    # Gateway does not yet exist.
+    # Make a new one via the REST API and make it a child of the given installation.
+    try:
+        url = globals.server["host"] + "/gateways/"
+        payload = {
+            "ip_address": "-",
+            "sensors": [],
+            "config": [],
+            "installation" : options.installationId
+        }
+        r = requests.post(url, json=payload)
+
+        if(r.status_code == 400):
+            print("Installation does not exist!")
+            exit()
+
+        response = r.json()
+        gateway = Gateway(options.gatewayInterval, options.interval, response['gateway_id'])
+
+        url = globals.server["host"] + "/gateways/{}/sensors/".format(gateway.id)
+        for n in range(1,options.nSensors):
+            payload = {
+                "name": "Sensor Node",
+                #"gateway_id": ,
+                "config": []
+            }
+
+            r = requests.post(url, json=payload)
+            response = r.json()
+
+            sensor = Sensor(response['sensor_id'])
+            #print("Attaching new sensor with id {}".format(sensor.id))
+
+            gateway.add_sensor(sensor)
+
+    except requests.exceptions.ConnectionError:
+        sys.stderr.write('Failed to make Connection')
+
+
+print("GatewayID: {}".format(options.gatewayId))
+print("# of Sensors:  {}".format(options.nSensors))
+print("Sensor Interval: {}s".format(options.interval))
+print("Gateway Interval: {}s".format(options.gatewayInterval))
 
 # Start new run
-print("Bringing Sensors Online")
-
-gateway =  Gateway(options['interval'], options["gateway-   id"])
-for i in range(1, options['nSensors']+1):
-    sensor = Sensor()
-    gateway.add_sensor(sensor)
-
-
-print("\rAll Sensors Online!")
 print("\n")
-
 print('Press Ctrl+C to exit')
 
 try:

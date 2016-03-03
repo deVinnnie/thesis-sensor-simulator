@@ -4,25 +4,27 @@ import queue
 import requests
 import json
 import sys
+import pprint
 
 class Gateway:
-    def __init__(self, interval, id):
+    def __init__(self, interval, sensorInterval, id):
         """
             Args:
                 interval : Time between readouts of the sensor values.
         """
         self.id = id
         self.sensors = []
-        self.readings = queue.Queue()
+
         self.nReadings = 0
         self.installation_id = 0
         self.company_id = 0
         self.interval = interval
-        
+        self.sensorInterval = sensorInterval
+
         self.config = ""
 
-        globals.scheduler.add_job(self.transmit, 'interval', seconds=5)
-        globals.scheduler.add_job(self.do_readings, 'interval', seconds=self.interval)
+        globals.scheduler.add_job(self.transmit, 'interval', seconds=self.interval)
+        globals.scheduler.add_job(self.do_readings, 'interval', seconds=self.sensorInterval)
     
     
     def add_sensor(self, sensor, save=True):
@@ -32,36 +34,51 @@ class Gateway:
     def transmit(self):
         """
         Posts all readings in the queue to the REST API.
-        """
-        while not self.readings.empty():
-            reading = self.readings.get()
-            
-            values = {
-                0 : reading.cap, 
-                1 : reading.temp1,
-                2 : reading.temp2, 
-                3 : reading.humidity
-            }
-            
-            payload = {
-                'measurements' : []
-            }
-            for type,value in values.items():
-                readingPayload = {
-                    "timestamp" : reading.timestamp.isoformat(), #"2015-01-01T00:00:00"
-                    "sensor_id" : reading.sensor.id,
-                    "measurement_type" : type,
-                    "value" : "{:.5f}".format(value) #JSON doesn't do native decimals. Encode as string instead.
-                }
-                payload['measurements'].append(readingPayload)
 
-            url = globals.server["host"] + "/gateways/{}/sensors/{}/measurements/".format(self.id,reading.sensor.id)
-            
+        Number of requests = #sensors
+        """
+        print("Begin Transmission.")
+        for sensor in self.sensors:
+            # Pack all measurements together.
+            payload = {
+                    'measurements' : []
+                    }
+
+            # Payload:
+            # "measurements" : [
+            #     [ "20150101",  ],
+            #     [],
+            # ]
+
+            counter = 5
+            while not sensor.readings.empty() and counter >= 0:
+                counter -= 1
+                reading = sensor.readings.get()
+                values = {
+                    0 : reading.cap,
+                    1 : reading.temp1,
+                    2 : reading.temp2,
+                    3 : reading.humidity
+                }
+
+                for type,value in values.items():
+                    readingPayload = {
+                        "timestamp" : reading.timestamp.isoformat(), #"2015-01-01T00:00:00"
+                        "sensor_id" : reading.sensor.id,
+                        "measurement_type" : type,
+                        "value" : "{:.5f}".format(value) #JSON doesn't do native decimals. Encode as string instead.
+                    }
+                    payload['measurements'].append(readingPayload)
+
+            # pp = pprint.PrettyPrinter(indent=4)
+            # pp.pprint(payload)
+
+            url = globals.server["host"] + "/gateways/{}/sensors/{}/measurements/".format(self.id, sensor.id)
             try:
                 r = requests.post(url, json=payload)
             except requests.exceptions.ConnectionError:
                 sys.stderr.write('Failed to make Connection')
-            #self.fetch_configuration()
+        print("End Transmission.")
                 
     def fetch_configuration(self):
         url = globals.server["host"] + "/gateways/{}/config".format(self.id)
@@ -77,26 +94,20 @@ class Gateway:
 
 
 class Sensor:
-    id = 1
-    
-    def generate_id():
-        newId = Sensor.id 
-        Sensor.id += 1
-        return newId
-    
-    def __init__(self):
-        self.id = Sensor.generate_id()
+    def __init__(self, id=None):
+        self.id = id
         self.counter = 0
         self.currentReading = Reading(0, self)
+        self.readings = queue.Queue()
     
     def read_out(self):
         """
-        Takes a new reading and pushes it to the readings-Queue of the gateway 
+        Takes a new reading and pushes it to the readings-Queue of this sensor
         for later transmission.
         """
         reading = Reading(self.counter, self, self.currentReading)
         self.currentReading = reading
-        self.gateway.readings.put(reading)
+        self.readings.put(reading)
         self.counter += 1
 
 
