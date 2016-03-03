@@ -25,6 +25,7 @@ import argparse
 from virtual_date import *
 from models import *
 import globals
+import signal
 
 
 start_time = time.time()
@@ -40,12 +41,13 @@ scheduler.start()
 # 12 h = 6*5s = 30s.
 
 parser = argparse.ArgumentParser(description='Process some integers.')
-parser.add_argument('--interval', nargs='?', help='Update interval', default=5)
-parser.add_argument('--gateway-interval', nargs='?', help='Update interval', default=60, dest='gatewayInterval')
-parser.add_argument('--sensors', nargs='?', help='Number of sensors attached to this gateway.', default=100, dest='nSensors')
-parser.add_argument('--gateway-id',nargs='?', help='Unique ID assigned to the gateway (has to exist on the server).', default=0, dest='gatewayId')
-parser.add_argument('--installation-id', nargs='?', help='ID of the installation for which a new gateway will be created.', default=0, dest='installationId')
+parser.add_argument('--interval', nargs='?', type=int, help='Update interval', default=5)
+parser.add_argument('--gateway-interval', nargs='?', type=int, help='Update interval', default=60, dest='gatewayInterval')
+parser.add_argument('--sensors', nargs='?', type=int, help='Number of sensors attached to this gateway.', default=100, dest='nSensors')
+parser.add_argument('--gateway-id',nargs='?', type=int, help='Unique ID assigned to the gateway (has to exist on the server).', default=0, dest='gatewayId')
+parser.add_argument('--installation-id', nargs='?', type=int, help='ID of the installation for which a new gateway will be created.', default=0, dest='installationId')
 options = parser.parse_args()
+options.gatewayInterval = 12 * options.interval # The gateway transmits once every day. One interval is 2 hours.
 
 #             # options['time'] = arg
 #             dt = datetime.strptime(arg, '%Y-%m-%d-%H:%M:%S')
@@ -53,6 +55,7 @@ options = parser.parse_args()
 
 # Initialize clock
 print("Current Timestamp {}".format(globals.virtualDate.get_timestamp()))
+print(options.interval)
 scheduler.add_job(globals.virtualDate.tick, 'interval', seconds=options.interval)
 
 gateway = None
@@ -75,9 +78,9 @@ if options.gatewayId:
             # Analyze payload, retrieve sensors.
             response = r.json()
             sensors = response['sensors']
-            
+
+            print("Bringing Sensors Online")
             for s_id in sensors:
-                print("Bringing Sensors Online")
                 sensor = Sensor(s_id)
                 gateway.add_sensor(sensor)
     except requests.exceptions.ConnectionError:
@@ -132,6 +135,12 @@ print("Gateway Interval: {}s".format(options.gatewayInterval))
 print("\n")
 print('Press Ctrl+C to exit')
 
+
+def handler(signum, frame):
+    exit()
+
+signal.signal(signal.SIGINT, handler)
+
 try:
     while True:
         time.sleep(0.5)
@@ -148,7 +157,8 @@ try:
                                                 end=""
         )
 except (KeyboardInterrupt, SystemExit):
-    scheduler.shutdown()
+    pass
 finally:
+    scheduler.shutdown()
     print("")
     print("GoodBye!")
