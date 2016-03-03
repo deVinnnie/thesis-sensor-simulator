@@ -19,8 +19,6 @@ import time
 from pytz import utc
 from apscheduler.schedulers.background import BackgroundScheduler
 import sys
-import getopt
-import json
 import argparse
 from virtual_date import *
 from models import *
@@ -34,7 +32,6 @@ start_time = time.time()
 scheduler = BackgroundScheduler(timezone=utc)
 globals.scheduler = scheduler
 scheduler.start()
-
 
 # Transmit interval = every day = 24h.
 # 2 hours = 5s.
