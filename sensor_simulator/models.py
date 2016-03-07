@@ -66,7 +66,7 @@ class Gateway:
                         "timestamp" : reading.timestamp.isoformat(), #"2015-01-01T00:00:00"
                         "sensor_id" : reading.sensor.id,
                         "measurement_type" : type,
-                        "value" : "{:.5f}".format(value) #JSON doesn't do native decimals. Encode as string instead.
+                        "value" : value
                     }
                     payload['measurements'].append(readingPayload)
 
