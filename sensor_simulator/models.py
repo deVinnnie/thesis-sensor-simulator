@@ -75,7 +75,7 @@ class Gateway:
 
             url = globals.server["host"] + "/gateways/{}/sensors/{}/measurements/".format(self.id, sensor.id)
             try:
-                r = requests.post(url, json=payload)
+                r = requests.post(url, json=payload, verify=False)
             except requests.exceptions.ConnectionError:
                 sys.stderr.write('Failed to make Connection')
         print("End Transmission.")

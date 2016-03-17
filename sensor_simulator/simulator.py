@@ -63,8 +63,9 @@ if options.gatewayId:
     # Get the gateway's information via REST. 
     # Initialize with correct number of sensors.
     try:
-        url = globals.server["host"] + "/gateways/{}/".format(options.gatewayId)
-        r = requests.get(url)
+        print("Retrieving Configuration from Server")
+        url = globals.server["host"] + "/gateways/{}.json".format(options.gatewayId)
+        r = requests.get(url, verify=False)
         
         if(r.status_code == requests.codes.not_found):
             # Gateway does not exist.
@@ -77,11 +78,11 @@ if options.gatewayId:
             sensors = response['sensors']
 
             print("Bringing Sensors Online")
-            for s_id in sensors:
-                sensor = Sensor(s_id)
+            for s in sensors:
+                sensor = Sensor(s['sensor_id'])
                 gateway.add_sensor(sensor)
     except requests.exceptions.ConnectionError:
-        sys.stderr.write('Failed to make Connection')
+        print('Failed to make Connection')
 
 if options.installationId:
     # Gateway does not yet exist.
