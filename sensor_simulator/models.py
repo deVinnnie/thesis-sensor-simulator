@@ -18,8 +18,6 @@ class Gateway:
         self.sensors = []
 
         self.nReadings = 0
-        self.installation_id = 0
-        self.company_id = 0
         self.interval = interval
         self.sensorInterval = sensorInterval
 
