@@ -10,7 +10,9 @@ class Gateway:
     def __init__(self, interval, sensorInterval, id):
         """
             Args:
-                interval : Time between readouts of the sensor values.
+                interval : Time between transmissions of the readings to the server.
+                sensorInterval : Time between readouts of the sensor values.
+                id : Unique identifier for this gateway instance. Must be the same as in the database.
         """
         self.id = id
         self.sensors = []
@@ -123,6 +125,7 @@ class Reading:
             self.humidity = 0.4118
             self.cap = 1.0
         else:
+            # Increase measurements by a random value in the range of -0.5 to +0.5.
             self.temp1 = previousReading.temp1 + (random.random() - 0.5)
             self.temp2 = previousReading.temp2 + (random.random() - 0.5)
             self.humidity = previousReading.humidity + (random.random() - 0.5)

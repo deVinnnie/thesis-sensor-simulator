@@ -3,7 +3,9 @@ Sensor Node Simulator
 Usage example: python ./simulator.py --sensors 2 --interval 5
 
 Options:
-    --sensors : Number of sensors in each gateway.
+    --sensors : Number of sensors in the gateway.
+                Only used for creating a new gateway. When the gateway already exists the number of sensors will be
+                loaded via the REST api.
     --interval : Clock speed. One interval is equal to 2 hours of simulation time.
                  We suppose that a measurement happens every 2 hours.
     --gateway-id : Unique ID assigned to the gateway (has to exist on the server).
@@ -60,8 +62,7 @@ gateway = None
 
 if options.gatewayId:
     # Gateway already exist.
-    # Get the gateway's information via REST. 
-    # Initialize with correct number of sensors.
+    # Get the gateway's information via REST and initialize it with the correct number of sensors.
     try:
         print("Retrieving Configuration from Server")
         url = globals.server["host"] + "/gateways/{}.json".format(options.gatewayId)
@@ -135,8 +136,11 @@ print('Press Ctrl+C to exit')
 
 
 def handler(signum, frame):
+    # Will cause the main loop to quit and clean up.
     exit()
 
+# Attach a listener for the SIGINT signal.
+# This way the program can exit gracefully when killed using the kill $PID command.
 signal.signal(signal.SIGINT, handler)
 
 try:
@@ -146,6 +150,8 @@ try:
         
         nSecondsInYear = 60*60*24*365
         
+
+        # Use \r (carriage return, no line feed) to print over the previous output.
         print("\r{} Total Measurements sent to database: {} | Simulation Time: {}h = {:.5f}y.".format(
                                                     globals.virtualDate.get_timestamp(), 
                                                     totalMeasurements,
