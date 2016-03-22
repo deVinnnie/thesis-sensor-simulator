@@ -66,7 +66,7 @@ class Gateway:
                         "timestamp" : reading.timestamp.isoformat(), #"2015-01-01T00:00:00"
                         "sensor_id" : reading.sensor.id,
                         "measurement_type" : type,
-                        "value" : value
+                        "value" : float("{0:.5f}".format(value))
                     }
                     payload['measurements'].append(readingPayload)
 
