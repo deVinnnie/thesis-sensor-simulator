@@ -78,6 +78,7 @@ if options.gatewayId:
             response = r.json()
             sensors = response['sensors']
 
+            print("Found {} sensors".format(len(sensors)))
             print("Bringing Sensors Online")
             for s in sensors:
                 sensor = Sensor(s['sensor_id'])
