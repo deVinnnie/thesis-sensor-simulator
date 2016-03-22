@@ -144,12 +144,10 @@ def handler(signum, frame):
 signal.signal(signal.SIGINT, handler)
 
 try:
+    nSecondsInYear = 60*60*24*365
     while True:
         time.sleep(0.5)
         totalMeasurements = gateway.nReadings
-        
-        nSecondsInYear = 60*60*24*365
-        
 
         # Use \r (carriage return, no line feed) to print over the previous output.
         print("\r{} Total Measurements sent to database: {} | Simulation Time: {}h = {:.5f}y.".format(
