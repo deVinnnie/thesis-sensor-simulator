@@ -218,3 +218,17 @@ class Reading:
             self.temp2 = previousReading.temp2 + (random.random() - 0.5)
             self.humidity = previousReading.humidity + (random.random() - 0.5)
             self.cap = previousReading.cap + (random.random() - 0.5)
+
+    def __str__(self):
+        # 0 : reading.cap,
+        # 1 : reading.temp1,
+        # 2 : reading.temp2,
+        # 3 : reading.humidity
+
+        # MeasurementTypeID, sensor_id, timestamp, value
+        timestamp = self.timestamp.strftime("%Y-%m-%dT%H:%M:%S")
+        str = "0 {} {} {}\n".format(self.sensor.id, timestamp, self.cap)
+        str += "1 {} {} {}\n".format(self.sensor.id, timestamp, self.temp1)
+        str += "2 {} {} {}\n".format(self.sensor.id, timestamp, self.temp2)
+        str += "3 {} {} {}\n".format(self.sensor.id, timestamp, self.humidity)
+        return str
