@@ -151,10 +151,10 @@ class Gateway:
         """
         payload = []
         values = {
-                    0 : reading.cap,
-                    1 : reading.temp1,
-                    2 : reading.temp2,
-                    3 : reading.humidity
+                    1 : reading.cap,
+                    2 : reading.temp1,
+                    3 : reading.temp2,
+                    4 : reading.humidity
                 }
 
         for type,value in values.items():
@@ -220,15 +220,15 @@ class Reading:
             self.cap = previousReading.cap + (random.random() - 0.5)
 
     def __str__(self):
-        # 0 : reading.cap,
-        # 1 : reading.temp1,
-        # 2 : reading.temp2,
-        # 3 : reading.humidity
+        # 1 : reading.cap,
+        # 2 : reading.temp1,
+        # 3 : reading.temp2,
+        # 4 : reading.humidity
 
         # MeasurementTypeID, sensor_id, timestamp, value
         timestamp = self.timestamp.strftime("%Y-%m-%dT%H:%M:%S")
-        str = "0 {} {} {}\n".format(self.sensor.id, timestamp, self.cap)
-        str += "1 {} {} {}\n".format(self.sensor.id, timestamp, self.temp1)
-        str += "2 {} {} {}\n".format(self.sensor.id, timestamp, self.temp2)
-        str += "3 {} {} {}\n".format(self.sensor.id, timestamp, self.humidity)
+        str = "1 {} {} {}\n".format(self.sensor.id, timestamp, self.cap)
+        str += "2 {} {} {}\n".format(self.sensor.id, timestamp, self.temp1)
+        str += "3 {} {} {}\n".format(self.sensor.id, timestamp, self.temp2)
+        str += "4 {} {} {}\n".format(self.sensor.id, timestamp, self.humidity)
         return str
