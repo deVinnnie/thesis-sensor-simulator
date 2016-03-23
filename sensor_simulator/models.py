@@ -55,6 +55,23 @@ class Gateway:
                 counter -= 1
                 reading = sensor.readings.get()
                 values = {
+    def probe(self):
+        """
+            Connects to the server and returns a boolean indicating whether it was successful or not.
+
+            Returns:
+                True when connection succeeded.
+                False when a connection error, or an HTTP error code was received.
+        """
+        success = False
+        try:
+            url = globals.server["host"] + "/gateways/{}.json".format(self.id)
+            r = requests.get(url, verify=False)
+            if r.status_code == requests.codes.ok:
+                success = True
+        except requests.exceptions.ConnectionError:
+            pass
+        return success
                     0 : reading.cap,
                     1 : reading.temp1,
                     2 : reading.temp2,
