@@ -2,9 +2,8 @@ import random
 import globals
 import queue
 import requests
-import json
 import sys
-import pprint
+
 
 class Gateway:
     def __init__(self, interval, sensorInterval, id):
