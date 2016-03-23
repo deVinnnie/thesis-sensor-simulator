@@ -15,6 +15,11 @@ Options:
                         A new gateway is created under the specified installation.
                         Only specify either installation-id or gateway-id.
                         For the new gateway a id is assigned by the server.
+
+
+The program writes out a file with all measurements transmitted to the server. This happens at the end of the run, after
+receiving the SIGINT signal. Only measurements processed by the gateway will be included.
+Measurements still stored in the sensor's queue will not be considered.
 """
 
 import time
@@ -164,4 +169,18 @@ except (KeyboardInterrupt, SystemExit):
 finally:
     scheduler.shutdown()
     print("")
+
+    f = open("gateway{}.txt".format(gateway.id), 'w')
+
+    for reading in gateway.readingsSuccess:
+        #print(reading)
+        f.write(reading.__str__())
+    f.close()
+
+    f = open("gateway{}_failed.txt".format(gateway.id), 'w')
+    for reading in gateway.readingsFailed:
+        #print(reading)
+        f.write(reading.__str__())
+    f.close()
+
     print("GoodBye!")
