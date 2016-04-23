@@ -226,8 +226,8 @@ class Reading:
 
         # MeasurementTypeID, sensor_id, timestamp, value
         timestamp = self.timestamp.strftime("%Y-%m-%dT%H:%M:%S")
-        str = "1 {} {} {}\n".format(self.sensor.id, timestamp, self.cap)
-        str += "2 {} {} {}\n".format(self.sensor.id, timestamp, self.temp1)
-        str += "3 {} {} {}\n".format(self.sensor.id, timestamp, self.temp2)
-        str += "4 {} {} {}\n".format(self.sensor.id, timestamp, self.humidity)
+        str = "1 {} {} {}\n".format(self.sensor.id, timestamp, float("{0:.5f}".format(self.cap)))
+        str += "2 {} {} {}\n".format(self.sensor.id, timestamp, float("{0:.5f}".format(self.temp1)))
+        str += "3 {} {} {}\n".format(self.sensor.id, timestamp, float("{0:.5f}".format(self.temp2)))
+        str += "4 {} {} {}\n".format(self.sensor.id, timestamp, float("{0:.5f}".format(self.humidity)))
         return str
