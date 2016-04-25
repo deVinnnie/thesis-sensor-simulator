@@ -70,7 +70,8 @@ if options.gatewayId:
     # Get the gateway's information via REST and initialize it with the correct number of sensors.
     try:
         print("Retrieving Configuration from Server")
-        url = globals.server["host"] + "/gateways/{}.json".format(options.gatewayId)
+
+        url = globals.server["host"] + "/gateways/{}.json?api_key={}".format(options.gatewayId, globals.server["api-key"])
         r = requests.get(url, verify=False)
         
         if(r.status_code == requests.codes.not_found):
@@ -88,6 +89,9 @@ if options.gatewayId:
             for s in sensors:
                 sensor = Sensor(s['sensor_id'])
                 gateway.add_sensor(sensor)
+
+                # TODO: Retrieve latest measurement for sensor.
+
     except requests.exceptions.ConnectionError:
         print('Failed to make Connection')
 

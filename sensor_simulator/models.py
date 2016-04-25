@@ -95,9 +95,11 @@ class Gateway:
 
                     payload_partial = self.preparePayload(reading)
                     payload['measurements'].extend(payload_partial)
+                #?api_key = {}          globals.server['api_key']
+
 
                 try:
-                    url = globals.server["host"] + "/gateways/{}/sensors/{}/measurements/".format(self.id, sensor.id)
+                    url = globals.server["host"] + "/gateways/{}/sensors/{}/measurements/?api_key={}".format(self.id, sensor.id, globals.server['api-key'])
                     #print(payload)
 
 
@@ -132,7 +134,7 @@ class Gateway:
         """
         success = False
         try:
-            url = globals.server["host"] + "/gateways/{}.json".format(self.id)
+            url = globals.server["host"] + "/gateways/{}.json?api_key={}".format(self.id, globals.server['api-key'])
             r = requests.get(url, verify=False)
             if r.status_code == requests.codes.ok:
                 success = True
