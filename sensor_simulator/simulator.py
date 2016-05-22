@@ -32,7 +32,6 @@ from models import *
 import globals
 import signal
 
-
 start_time = time.time()
 
 # Start Scheduler
@@ -49,9 +48,12 @@ parser.add_argument('--interval', nargs='?', type=int, help='Update interval', d
 parser.add_argument('--gateway-interval', nargs='?', type=int, help='Update interval', default=60, dest='gatewayInterval')
 parser.add_argument('--sensors', nargs='?', type=int, help='Number of sensors attached to this gateway.', default=100, dest='nSensors')
 parser.add_argument('--gateway-id',nargs='?', type=int, help='Unique ID assigned to the gateway (has to exist on the server).', default=0, dest='gatewayId')
+parser.add_argument('--api-key',nargs='?', help='API-key (has to match value on the server).', default=0, dest='apiKey')
 parser.add_argument('--installation-id', nargs='?', type=int, help='ID of the installation for which a new gateway will be created.', default=0, dest='installationId')
 options = parser.parse_args()
 options.gatewayInterval = 12 * options.interval # The gateway transmits once every day. One interval is 2 hours.
+
+globals.server['api_key'] = options.apiKey
 
 #             # options['time'] = arg
 #             dt = datetime.strptime(arg, '%Y-%m-%d-%H:%M:%S')
@@ -87,7 +89,7 @@ if options.gatewayId:
             print("Found {} sensors".format(len(sensors)))
             print("Bringing Sensors Online")
             for s in sensors:
-                sensor = Sensor(s['sensor_id'])
+                sensor = Sensor(s)
                 gateway.add_sensor(sensor)
 
                 # TODO: Retrieve latest measurement for sensor.
