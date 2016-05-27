@@ -1,6 +1,5 @@
 from virtual_date import *
 import time
-import requests
 
 virtualDate = VirtualDate(int(time.time()))
 
@@ -9,3 +8,5 @@ server = {
     "host" : "http://localhost:8000/rest",
     "api-key" : "0eb8c8cef5c84205a2fd420184fbae3c"
 }
+
+api = "HHHH"

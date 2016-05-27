@@ -53,7 +53,7 @@ parser.add_argument('--installation-id', nargs='?', type=int, help='ID of the in
 options = parser.parse_args()
 options.gatewayInterval = 12 * options.interval # The gateway transmits once every day. One interval is 2 hours.
 
-globals.server['api_key'] = options.apiKey
+globals.apikey = options.apiKey
 
 #             # options['time'] = arg
 #             dt = datetime.strptime(arg, '%Y-%m-%d-%H:%M:%S')
@@ -73,7 +73,7 @@ if options.gatewayId:
     try:
         print("Retrieving Configuration from Server")
 
-        url = globals.server["host"] + "/gateways/{}.json?api_key={}".format(options.gatewayId, globals.server["api-key"])
+        url = globals.server["host"] + "/gateways/{}.json?api_key={}".format(options.gatewayId, globals.apikey)
         r = requests.get(url, verify=False)
         
         if(r.status_code == requests.codes.not_found):
@@ -162,9 +162,8 @@ try:
         totalMeasurements = gateway.nReadings
 
         # Use \r (carriage return, no line feed) to print over the previous output.
-        print("\r{} Total Measurements sent to database: {} | Simulation Time: {}h = {:.5f}y.".format(
-                                                    globals.virtualDate.get_timestamp(), 
-                                                    totalMeasurements,
+        print("\r{}  | Simulation Time: {}h = {:.5f}y.".format(
+                                                    globals.virtualDate.get_timestamp(),
                                                     globals.virtualDate.get_time_elapsed() / (60*60), 
                                                     globals.virtualDate.get_time_elapsed() / nSecondsInYear
                                                 ),

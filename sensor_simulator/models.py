@@ -4,6 +4,8 @@ import queue
 import requests
 import sys
 
+import pprint
+
 
 class Gateway:
     def __init__(self, interval, sensorInterval, id):
@@ -69,7 +71,9 @@ class Gateway:
 
                 try:
                     url = globals.server["host"] + "/gateways/{}/sensors/{}/measurements/".format(self.id, reading.sensor.id)
+
                     r = requests.post(url, json=payload, verify=False)
+                    pprint(vars(r))
 
                     # Reaching this code means that the transmission was successful
                     self.readingsSuccess.append(reading)
@@ -99,7 +103,7 @@ class Gateway:
 
 
                 try:
-                    url = globals.server["host"] + "/gateways/{}/sensors/{}/measurements/?api_key={}".format(self.id, sensor.id, globals.server['api-key'])
+                    url = globals.server["host"] + "/gateways/{}/sensors/{}/measurements/?api_key={}".format(self.id, sensor.id, globals.apikey)
                     #print(payload)
 
 
@@ -134,7 +138,7 @@ class Gateway:
         """
         success = False
         try:
-            url = globals.server["host"] + "/gateways/{}.json?api_key={}".format(self.id, globals.server['api-key'])
+            url = globals.server["host"] + "/gateways/{}.json?api_key={}".format(self.id, globals.apikey)
             r = requests.get(url, verify=False)
             if r.status_code == requests.codes.ok:
                 success = True
@@ -212,13 +216,13 @@ class Reading:
             self.temp1 = 20.0
             self.temp2 = 20.0
             self.humidity = 0.4118
-            self.cap = 1.0
+            self.cap = 500
         else:
             # Increase measurements by a random value in the range of -0.5 to +0.5.
             self.temp1 = previousReading.temp1 + (random.random() - 0.5)
             self.temp2 = previousReading.temp2 + (random.random() - 0.5)
             self.humidity = previousReading.humidity + (random.random() - 0.5)
-            self.cap = previousReading.cap + (random.random() - 0.5)
+            self.cap = previousReading.cap + (random.random() - 0.5)*0.1
 
     def __str__(self):
         # 1 : reading.cap,
